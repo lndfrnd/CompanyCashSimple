@@ -247,7 +247,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="John" 
+                        placeholder="First Name" 
                         {...field}
                         onChange={(e) => {
                           const capitalized = e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1);
@@ -268,7 +268,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Doe" 
+                        placeholder="Last Name" 
                         {...field}
                         onChange={(e) => {
                           const capitalized = e.target.value.charAt(0).toUpperCase() + e.target.value.slice(1);
@@ -292,7 +292,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
                   <FormControl>
                     <Input
                       type="email"
-                      placeholder="john.doe@example.com"
+                      placeholder="email@example.com"
                       className="bg-background"
                       autoComplete="off"
                       {...field}
@@ -308,7 +308,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
               name="phone"
               render={({ field: { onChange, value, ...field } }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className="absolute left-3 flex items-center h-full">
