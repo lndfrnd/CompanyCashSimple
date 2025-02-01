@@ -26,7 +26,7 @@ function App() {
               country: 'AU',
               buttonColor: PREDEFINED_COLORS.black,
               leadSource: 'LoansOne Legacy',
-              brand: 'BizLoans Fast',
+              brand: 'LoansOne',
               buttonText: 'Submit',
             }} />} />
           </Route>
