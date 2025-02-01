@@ -122,12 +122,12 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
     };
 
     const formattedPayload = {
-      first_name: basePayload.fname,
-      last_name: basePayload.lname,
+      fname: basePayload.fname,
+      lname: basePayload.lname,
       email: basePayload.email,
-      mobile: basePayload.phone,
-      loan_amount: basePayload.amount,
-      lead_status: "New",
+      phone: basePayload.phone,
+      amount: basePayload.amount,
+      lstatus: "New Lead",
       country_code: basePayload.iso,
       lead_source: basePayload.lsource,
       company: basePayload.brand
@@ -140,14 +140,14 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
         mode: 'no-cors'
       },
       {
-        name: 'Zoho Flow',
-        url: 'https://flow.zoho.com/804240963/flow/webhook/incoming?zapikey=1001.7ac779e0606a1a6da7bff68374392fc9.a7b85b3ed11545d66d36fe74fe9057dc&isdebug=false',
-        mode: 'cors'
-      },
-      {
         name: 'Formcarry',
         url: 'https://formcarry.com/s/ZIcifdwx6ev',
         mode: 'cors'
+      },
+      {
+        name: 'Cloudflare Worker',
+        url: 'https://loansone-simple-iframe-sendtozoho.bailey-3eb.workers.dev/',
+        mode: 'no-cors'
       }
     ];
 
