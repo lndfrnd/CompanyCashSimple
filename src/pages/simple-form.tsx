@@ -147,7 +147,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
       phone: basePayload.phone,
       amount: basePayload.amount,
       lstatus: 'New Lead',
-      country_code: basePayload.iso,
+      iso: basePayload.iso,
       lead_source: basePayload.lsource,
       brand: basePayload.brand,
     };
