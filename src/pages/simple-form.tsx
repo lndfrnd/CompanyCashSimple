@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils';
+import { formatPhoneNumber } from '@/lib/utils';
 import { FormOverlay } from '@/components/form-overlay';
 
 const PREDEFINED_COLORS = {
@@ -76,6 +76,24 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
   const [submittedName, setSubmittedName] = useState('');
   const { toast } = useToast();
 
+  // New state: store predicted state/territory from IP lookup.
+  const [predictedState, setPredictedState] = useState('');
+
+  // Use a public geolocation API to try and determine the state/territory.
+  useEffect(() => {
+    fetch('https://ipapi.co/json/')
+      .then((response) => response.json())
+      .then((data) => {
+        // Only use the predicted state if the visitor is in Australia.
+        if (data && data.country_code === 'AU' && data.region) {
+          setPredictedState(data.region);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching geolocation data:', err);
+      });
+  }, []);
+
   // Get settings from URL parameters or props
   const colorParam = searchParams.get('color')?.toLowerCase();
   const brandParam = searchParams.get('brand')?.replace(/\+/g, ' ');
@@ -88,6 +106,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
       ? PREDEFINED_COLORS[colorParam as keyof typeof PREDEFINED_COLORS] || settings?.buttonColor
       : settings?.buttonColor,
     leadSource: 'Business Loan Form', // Always set to this value
+    // Default to "LoansOne iFrame" unless overridden by URL params or settings.
     brand: sourceParam || brandParam || settings?.brand || 'LoansOne iFrame',
     buttonText: buttonTextParam || settings?.buttonText || 'Submit',
   };
@@ -130,44 +149,50 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
       lstatus: 'New Lead',
       country_code: basePayload.iso,
       lead_source: basePayload.lsource,
-      company: basePayload.brand,
+      brand: basePayload.brand,
     };
 
     const webhooks = [
-      /*
-      {
-        name: 'Webhook.site',
-        url: 'https://webhook.site/6e0da188-4bb5-4546-bf0d-f9a1d639bd59',
-        mode: 'no-cors'
-      },
-      */
       {
         name: 'Formcarry',
         url: 'https://formcarry.com/s/ZIcifdwx6ev',
-        mode: 'cors'
+        mode: 'cors',
       },
       {
         name: 'Cloudflare Worker',
         url: 'https://loansone-simple-iframe-sendtozoho.bailey-3eb.workers.dev/',
-        mode: 'no-cors'
-      }
+        mode: 'no-cors',
+      },
     ];
 
     try {
-      const responses = await Promise.all(
+      await Promise.all(
         webhooks.map(async (webhook) => {
           console.log(`\nSending to ${webhook.name}...`);
-          console.log('Payload:', JSON.stringify(formattedPayload, null, 2));
+
+          // For the Formcarry endpoint, add extra fields:
+          // - submission_url: the URL where the submission originated.
+          // - predicted_state: the state/territory determined via IP lookup.
+          const payloadToSend =
+            webhook.name === 'Formcarry'
+              ? {
+                  ...formattedPayload,
+                  submission_url: document.referrer || window.location.href,
+                  predicted_state: predictedState, // e.g. "New South Wales"
+                }
+              : formattedPayload;
+
+          console.log('Payload:', JSON.stringify(payloadToSend, null, 2));
 
           try {
             const response = await fetch(webhook.url, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json; charset=utf-8',
-                'Accept': 'application/json',
+                Accept: 'application/json',
               },
               mode: webhook.mode as RequestMode,
-              body: JSON.stringify(formattedPayload),
+              body: JSON.stringify(payloadToSend),
             });
 
             const responseText = await response.text();
@@ -177,32 +202,22 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
               Object.fromEntries(response.headers.entries())
             );
             console.log(`${webhook.name} Response Body:`, responseText);
-
-            return {
-              webhook: webhook.name,
-              success: response.ok,
-              status: response.status,
-              response: responseText,
-            };
           } catch (error: any) {
             console.error(`${webhook.name} Error:`, error);
-            return {
-              webhook: webhook.name,
-              success: false,
-              error: error.message,
-            };
           }
         })
       );
 
-      console.log('All webhook responses:', responses);
-
-      // If the brand is exactly "LoansOne", redirect to the thank you page.
-      // (Using toLowerCase to ensure a case-insensitive check.)
+      // If the brand is exactly "LoansOne" (case-insensitive), force a top-level redirect.
       if (effectiveSettings.brand?.toLowerCase() === 'loansone') {
-        window.location.href = 'https://loansone.com.au/thank-you-unsecured2/';
+        if (window.top) {
+          window.top.location.href = 'https://loansone.com.au/thank-you-unsecured2/';
+        } else {
+          window.location.href = 'https://loansone.com.au/thank-you-unsecured2/';
+        }
         return;
       }
+      // Otherwise, the form continues with its original behavior.
     } catch (error) {
       console.error('Error submitting form:', error);
     }
@@ -239,7 +254,9 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
                         {...field}
                         value={
                           value
-                            ? value.replace(/[^0-9]/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                            ? value
+                                .replace(/[^0-9]/g, '')
+                                .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                             : ''
                         }
                         onChange={(e) => {
@@ -330,7 +347,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
               name="phone"
               render={({ field: { onChange, value, ...field } }) => (
                 <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
+                  <FormLabel>Mobile Number</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className="absolute left-3 flex items-center h-full">

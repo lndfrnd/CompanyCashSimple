@@ -26,7 +26,7 @@ function App() {
               country: 'AU',
               buttonColor: PREDEFINED_COLORS.black,
               leadSource: 'LoansOne Legacy',
-              brand: 'LoansOne',
+              brand: 'N/A',
               buttonText: 'Submit',
             }} />} />
           </Route>
