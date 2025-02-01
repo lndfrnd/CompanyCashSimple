@@ -134,11 +134,13 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
     };
 
     const webhooks = [
+      /*
       {
         name: 'Webhook.site',
         url: 'https://webhook.site/6e0da188-4bb5-4546-bf0d-f9a1d639bd59',
         mode: 'no-cors'
       },
+      */
       {
         name: 'Formcarry',
         url: 'https://formcarry.com/s/ZIcifdwx6ev',
