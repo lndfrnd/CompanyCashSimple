@@ -125,6 +125,24 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
     },
   });
 
+  // Reset amount field if UTM param changes
+  React.useEffect(() => {
+    const utmAmount = searchParams.get('amount');
+    let formattedAmount = '';
+    if (utmAmount && /^\d+$/.test(utmAmount)) {
+      const amt = Math.min(parseInt(utmAmount), 50000);
+      formattedAmount = amt.toLocaleString();
+    }
+    if (formattedAmount) {
+      form.reset({
+        ...form.getValues(),
+        amount: formattedAmount,
+      });
+    }
+    // Only run when the amount param changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get('amount')]);
+
   async function onSubmit(data: FormValues) {
     setIsSubmitting(true);
     setSubmittedName(data.fname);
