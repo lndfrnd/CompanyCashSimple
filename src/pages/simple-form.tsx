@@ -1,22 +1,16 @@
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { formatPhoneNumber } from '@/lib/utils';
-import { FormOverlay } from '@/components/form-overlay';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../components/ui/form';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { useToast } from '../hooks/use-toast';
+import { formatPhoneNumber } from '../lib/utils';
+import { FormOverlay } from '../components/form-overlay';
 
 const PREDEFINED_COLORS = {
   red: '#FF0000',
@@ -50,9 +44,9 @@ const formSchema = z.object({
     .refine(
       (val) => {
         const num = parseInt(val);
-        return num > 0 && num <= 100000000;
+        return num > 0 && num <= 50000;
       },
-      'Loan amount must be between $1 and $100,000,000'
+      'Loan amount must be between $1 and $50,000'
     ),
   lstatus: z.string(),
 });
@@ -102,16 +96,22 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
 
   const effectiveSettings = {
     country: 'AU', // Force AU
-    buttonColor: colorParam 
-      ? PREDEFINED_COLORS[colorParam as keyof typeof PREDEFINED_COLORS] || settings?.buttonColor
-      : settings?.buttonColor,
+    buttonColor: '#3727d0',
     leadSource: 'Business Loan Form', // Always set to this value
-    // Default to "LoansOne iFrame" unless overridden by URL params or settings.
-    brand: sourceParam || brandParam || settings?.brand || 'LoansOne iFrame',
-    buttonText: buttonTextParam || settings?.buttonText || 'Submit',
+    // Default to "CompanyCash iFrame" unless overridden by URL params or settings.
+    brand: sourceParam || brandParam || settings?.brand || 'CompanyCash iFrame',
+    buttonText: 'Apply Now',
   };
 
   const isNZ = effectiveSettings.country === 'NZ';
+
+  // Prefill amount from UTM param if present
+  const utmAmount = searchParams.get('amount');
+  let formattedAmount = '';
+  if (utmAmount && /^\d+$/.test(utmAmount)) {
+    const amt = Math.min(parseInt(utmAmount), 50000);
+    formattedAmount = amt.toLocaleString();
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -120,7 +120,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
       lname: '',
       email: '',
       phone: '',
-      amount: '',
+      amount: formattedAmount,
       lstatus: 'New Lead',
     },
   });
@@ -155,12 +155,12 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
     const webhooks = [
       {
         name: 'Formcarry',
-        url: 'https://formcarry.com/s/ZIcifdwx6ev',
+        url: 'https://formcarry.com/s/s--QVw01qAt',
         mode: 'cors',
       },
       {
         name: 'Cloudflare Worker',
-        url: 'https://loansone-simple-iframe-sendtozoho.bailey-3eb.workers.dev/',
+        url: 'https://company-cash-simple-iframe-sendtozoho.bailey-3eb.workers.dev/',
         mode: 'no-cors',
       },
     ];
@@ -211,9 +211,9 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
       // If the brand is exactly "LoansOne" (case-insensitive), force a top-level redirect.
       if (effectiveSettings.brand?.toLowerCase() === 'loansone') {
         if (window.top) {
-          window.top.location.href = 'https://loansone.com.au/thank-you-unsecured2/';
+          window.top.location.href = 'https://companycash.com.au/thank-you-unsecured2/';
         } else {
-          window.location.href = 'https://loansone.com.au/thank-you-unsecured2/';
+          window.location.href = 'https://companycash.com.au/thank-you-unsecured2/';
         }
         return;
       }
@@ -242,7 +242,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
               name="amount"
               render={({ field: { onChange, value, ...field } }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">Loan Amount</FormLabel>
+                  <FormLabel className="text-sm">Loan Amount <span className='text-xs'>(max $50,000)</span></FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className="absolute left-2 flex items-center h-full">
@@ -415,7 +415,6 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
               className="w-full bg-black hover:bg-black/90 text-white"
               style={{
                 backgroundColor: buttonStyle?.backgroundColor || '#000000',
-                color: buttonStyle?.color || '#ffffff',
               }}
             >
               {effectiveSettings.buttonText}
