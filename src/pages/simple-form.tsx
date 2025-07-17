@@ -44,9 +44,9 @@ const formSchema = z.object({
     .refine(
       (val) => {
         const num = parseInt(val);
-        return num > 0 && num <= 50000;
+        return num > 0 && num <= 100000;
       },
-      'Loan amount must be between $1 and $50,000'
+      'Loan amount must be between $1 and $100,000'
     ),
   lstatus: z.string(),
 });
@@ -109,7 +109,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
   const utmAmount = searchParams.get('amount');
   let formattedAmount = '';
   if (utmAmount && /^\d+$/.test(utmAmount)) {
-    const amt = Math.min(parseInt(utmAmount), 50000);
+    const amt = Math.min(parseInt(utmAmount), 100000);
     formattedAmount = amt.toLocaleString();
   }
 
@@ -130,7 +130,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
     const utmAmount = searchParams.get('amount');
     let formattedAmount = '';
     if (utmAmount && /^\d+$/.test(utmAmount)) {
-      const amt = Math.min(parseInt(utmAmount), 50000);
+      const amt = Math.min(parseInt(utmAmount), 100000);
       formattedAmount = amt.toLocaleString();
     }
     if (formattedAmount) {
@@ -260,7 +260,7 @@ export function SimpleForm({ settings }: SimpleFormProps = {}) {
               name="amount"
               render={({ field: { onChange, value, ...field } }) => (
                 <FormItem>
-                  <FormLabel className="text-sm">Loan Amount <span className='text-xs'>(max $50,000)</span></FormLabel>
+                  <FormLabel className="text-sm">Loan Amount <span className='text-xs'>(max $100,000)</span></FormLabel>
                   <FormControl>
                     <div className="relative">
                       <div className="absolute left-2 flex items-center h-full">
